@@ -1,0 +1,77 @@
+{
+    "manifest_version": 3,
+    "name": "JTool",
+    "version": "1.0",
+    "description": "A Chrome extension combining formatting tools and a timer.",
+    "permissions": [
+        "activeTab",
+        "storage",
+        "scripting",
+        "declarativeContent",
+        "alarms",
+        "notifications"
+    ],
+    "host_permissions": [
+        "<all_urls>"
+    ],
+    "background": {
+        "service_worker": "background.bundle.js"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "icons/icon16.png",
+            "32": "icons/icon32.png",
+            "48": "icons/icon48.png",
+            "128": "icons/icon128.png"
+        }
+    },
+    "icons": {
+        "16": "icons/icon16.png",
+        "32": "icons/icon32.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["browser-polyfill.js", "content.bundle.js"],
+            "run_at": "document_start"
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": ["content.bundle.js", "browser-polyfill.js", "formatter.js", "hunterMode.js"],
+            "matches": ["<all_urls>"]
+        }
+    ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:;"
+    },
+    "commands": {
+        "apply-bold": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+B"
+            },
+            "description": "Apply bold formatting"
+        },
+        "apply-italic": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+I"
+            },
+            "description": "Apply italic formatting"
+        },
+        "open-popup": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+F"
+            },
+            "description": "Open JTool popup"
+        }
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "{your-firefox-extension-id}",
+            "strict_min_version": "57.0"
+        }
+    }
+}

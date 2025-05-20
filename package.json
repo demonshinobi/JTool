@@ -1,0 +1,30 @@
+{
+  "name": "jtool",
+  "version": "1.0.0",
+  "description": "A Chrome extension combining formatting tools and a timer.",
+  "main": "dist/background.bundle.js",
+  "browser": "dist/content.bundle.js",
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "build:prod": "webpack --config webpack.config.js --mode=production",
+    "watch": "webpack --config webpack.config.js --watch",
+    "dev": "webpack --config webpack.config.js --mode=development",
+    "start": "npm run build && npm run watch",
+    "test": "node --test"
+  },
+  "keywords": ["browser extension", "formatting", "html", "templates", "timer"],
+  "author": "Your Name or Company",
+  "license": "ISC",
+  "devDependencies": {
+    "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.8.1",
+    "mini-css-extract-plugin": "^2.7.6",
+    "terser-webpack-plugin": "^5.3.9",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "dompurify": "^3.1.6"
+  }
+}

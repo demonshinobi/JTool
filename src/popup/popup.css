@@ -1,0 +1,976 @@
+/* JTool Combined popup.css */
+
+/* --- Base Variables --- */
+:root {
+  --primary-color: #00A4E4; /* Kaseya Blue */
+  --secondary-color: #005B94; /* Kaseya Dark Blue */
+  --accent-color: #89CFF0; /* Baby Blue / Lighter Kaseya Blue */
+  --text-color: #212529; /* Darker text for better contrast */
+  --background-color: #FFFFFF; /* Start with white for light mode */
+  --input-background: #F8F9FA; /* Very light grey for inputs */
+  --button-text-color: #FFFFFF;
+  --border-color: #DEE2E6; /* Lighter border */
+  --shadow-light: rgba(0, 91, 148, 0.06); /* Subtle blueish shadow */
+  --shadow-medium: rgba(0, 91, 148, 0.1);
+  --transition-duration: 0.2s; /* Slightly faster transitions */
+  --border-radius-small: 4px;
+  --border-radius-medium: 8px; /* More rounded */
+  --border-radius-large: 12px;
+  --font-family-main: 'Roboto', 'Segoe UI', system-ui, sans-serif; /* Modern font stack */
+  --accent-color-transparent: rgba(0, 164, 228, 0.15); /* More subtle focus */
+  --glass-bg: rgba(255, 255, 255, 0.6); /* Glassmorphism background */
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-blur: 8px;
+}
+
+/* --- Dark Mode Variables --- */
+body.dark-mode {
+  --text-color: #E9ECEF; /* Lighter grey text */
+  --background-color: #0B0F1A; /* Deep dark blue background */
+  --input-background: #1C2130; /* Dark input background */
+  --border-color: #343A40; /* Dark border */
+  --shadow-light: rgba(0, 0, 0, 0.2);
+  --shadow-medium: rgba(0, 0, 0, 0.35);
+  --primary-color: #36C2FF; /* Slightly adjusted bright blue */
+  --secondary-color: #008DD4; /* Adjusted secondary blue */
+  --accent-color: #7BCFFF;
+  --accent-color-transparent: rgba(54, 194, 255, 0.2);
+  --glass-bg: rgba(28, 33, 48, 0.65); /* Dark glass */
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+/* --- Global Resets & Body --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  margin: 0;
+  padding: 0;
+  /* height: 100%; Removed to allow fixed sizing */
+  width: 400px !important; /* Fixed width for the popup */
+  height: 600px; /* Fixed height for the popup */
+  font-size: 16px; /* Base font size */
+  overflow: hidden; /* Prevent scrollbars on html element itself */
+}
+
+body {
+  /* height: 100%; Removed as html now has fixed height */
+  height: 100%; /* Body should fill the fixed html height */
+  margin: 0; /* Already set via *, but explicit */
+  padding: 0; /* Already set via *, but explicit */
+  font-family: var(--font-family-main);
+  background-color: var(--background-color); /* Use theme background */
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  transition: background-color var(--transition-duration) ease, color var(--transition-duration) ease;
+  overflow: hidden; /* Prevent body scroll, container/main will scroll */
+  line-height: 1.6; /* Improved line height */
+}
+
+/* --- Background Canvas (from Timer) --- */
+#bgCanvas {
+  position: fixed; /* Ensure fixed position */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; /* Directly behind container */
+  pointer-events: none; /* Prevent interaction */
+  opacity: 0.6; /* Adjust as needed */
+  transition: opacity var(--transition-duration) ease;
+}
+body.dark-mode #bgCanvas {
+    opacity: 0.5; /* Adjust as needed for dark mode */
+}
+
+/* --- Main Container & Header --- */
+.container {
+  /* flex: 1; Removed as body now manages height distribution */
+  height: 100%; /* Container takes full height of body */
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden; /* Container itself should not scroll */
+  position: relative;
+  z-index: 1;
+  min-height: 0; /* Prevent flex item blowout */
+  /* Semi-transparent background to show canvas */
+  background-color: rgba(255, 255, 255, 0.85); /* Light theme semi-transparent */
+  border-radius: 0; /* Full window effect */
+  transition: background-color var(--transition-duration) ease; /* Transition background-color only */
+}
+/* Dark mode override for container background */
+body.dark-mode .container {
+  background-color: rgba(11, 15, 26, 0.85); /* Dark theme semi-transparent */
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--glass-border); /* Use glass border */
+  transition: border-color var(--transition-duration) ease;
+}
+
+#logo {
+  width: 36px; 
+  height: 36px;
+  margin-right: 12px;
+  object-fit: contain;
+}
+
+h1 {
+  font-size: 1.6em; /* Slightly larger */
+  font-weight: 700; /* Bolder */
+  color: var(--primary-color);
+  margin: 0;
+  flex-grow: 1;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Subtle text shadow */
+}
+
+/* --- Tab Navigation --- */
+.tab-nav {
+  display: flex;
+  margin-bottom: 25px; /* More space */
+  border-bottom: 1px solid var(--glass-border); /* Use glass border */
+  position: relative;
+}
+
+.tab-button {
+  padding: 10px 16px; /* Adjusted padding */
+  font-size: 1em; /* Slightly larger */
+  font-weight: 500;
+  border: none;
+  background-color: #E9ECEF; /* Light mode background */
+  color: var(--text-color);
+  opacity: 0.75; /* Slightly less dim */
+  cursor: pointer;
+  transition: color var(--transition-duration) ease, opacity var(--transition-duration) ease, background-color var(--transition-duration) ease;
+  margin-right: 5px;
+  position: relative;
+  border-radius: var(--border-radius-medium) var(--border-radius-medium) 0 0; /* Top rounding */
+  z-index: 1; /* Ensure buttons are above the underline pseudo-element */
+}
+
+.tab-button:hover {
+  color: var(--primary-color);
+  opacity: 1;
+  background-color: #DEE2E6; /* Light mode hover background */
+}
+/* Add RGB versions of colors for rgba() usage */
+:root { --primary-color-rgb: 0, 164, 228; }
+body.dark-mode { --primary-color-rgb: 54, 194, 255; }
+
+.tab-button.active {
+  font-weight: 600;
+  color: var(--primary-color);
+  opacity: 1;
+  background-color: var(--accent-color-transparent); /* Light mode active background */
+}
+
+/* Underline effect */
+.tab-nav::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; /* Align with the nav border */
+    left: 0;
+    height: 2px;
+    background-color: var(--primary-color);
+    width: 0; /* Initially hidden */
+    transition: left var(--transition-duration) ease, width var(--transition-duration) ease;
+}
+/* JS will need to update left and width of this pseudo-element on tab change */
+
+/* --- Tab Content --- */
+main {
+  flex: 1; /* Take remaining space in container */
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* THIS is the main scrollable area */
+  min-height: 0; /* Crucial for flex scrolling */
+  padding-top: 10px;
+}
+
+.tab-content {
+  display: none;
+  animation: fadeIn 0.35s ease-out; /* Slightly slower fade */
+  padding: 5px; /* Small padding around content */
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Formatter Tab Styles --- */
+#formatter-tab h2, #timer-tab h2, #sessions-tab h2 {
+    font-size: 1.3em;
+    margin-bottom: 20px; /* More space below titles */
+    color: var(--secondary-color);
+    font-weight: 600;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--glass-border); /* Subtle separator */
+}
+body.dark-mode #formatter-tab h2, body.dark-mode #timer-tab h2, body.dark-mode #sessions-tab h2 {
+    color: var(--accent-color); /* Lighter title in dark mode */
+}
+
+#html-input, textarea {
+  width: 100%;
+  min-height: 120px;
+  margin-bottom: 15px;
+  padding: 12px;
+  font-size: 0.95em; /* Slightly larger text */
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-medium);
+  background-color: var(--input-background);
+  resize: vertical;
+  color: var(--text-color);
+  transition: border-color var(--transition-duration) ease, box-shadow var(--transition-duration) ease, background-color var(--transition-duration) ease;
+  font-family: 'Courier New', Courier, monospace; /* Monospace for code */
+}
+
+#html-input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--accent-color-transparent); /* Slightly larger focus ring */
+  background-color: var(--background-color); /* Match body bg on focus */
+}
+body.dark-mode #html-input:focus, body.dark-mode textarea:focus {
+  background-color: #161A26; /* Darker focus background */
+}
+
+#preview-container {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-medium);
+  padding: 15px;
+  min-height: 80px;
+  background-color: var(--input-background);
+  margin-bottom: 20px; /* More space */
+  overflow-y: auto;
+  font-size: 0.9em;
+  transition: border-color var(--transition-duration) ease, background-color var(--transition-duration) ease;
+}
+
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 12px; /* Slightly more gap */
+  margin-bottom: 20px; /* More space */
+}
+
+button {
+  padding: 9px 16px; /* Adjusted padding */
+  font-size: 0.9em;
+  font-weight: 600; /* Bolder buttons */
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-medium);
+  cursor: pointer;
+  transition: all var(--transition-duration) ease; /* Animate all properties */
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+button:hover {
+    transform: translateY(-2px); /* More lift */
+    box-shadow: 0 4px 8px var(--shadow-light); /* Enhanced shadow */
+}
+
+button:active {
+    transform: translateY(0px);
+    box-shadow: none;
+}
+
+.primary-btn {
+  background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color)); /* Gradient */
+  color: var(--button-text-color);
+  border: none; /* Remove border for gradient buttons */
+  text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}
+
+.primary-btn:hover {
+  background: linear-gradient(to bottom right, var(--secondary-color), var(--primary-color)); /* Shift gradient */
+  box-shadow: 0 6px 12px var(--shadow-medium); /* Larger shadow on hover */
+}
+
+.secondary-btn {
+  background-color: transparent; /* Transparent background */
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+
+.secondary-btn:hover {
+  background-color: var(--accent-color-transparent); /* Use transparent accent */
+  color: var(--primary-color); /* Keep text color */
+  border-color: var(--primary-color);
+}
+body.dark-mode .secondary-btn {
+  background-color: transparent;
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+body.dark-mode .secondary-btn:hover {
+  background-color: var(--accent-color-transparent);
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.icon-btn {
+  background-color: transparent;
+  padding: 8px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color var(--transition-duration) ease, transform 0.1s ease; /* Add transform transition */
+}
+.icon-btn:active {
+    transform: scale(0.9); /* Click effect */
+}
+
+.icon-btn svg {
+  width: 18px; /* Slightly smaller icons */
+  height: 18px;
+  fill: var(--text-color);
+  opacity: 0.65; /* More subtle */
+  transition: fill var(--transition-duration) ease, opacity var(--transition-duration) ease;
+}
+.icon-btn:hover svg {
+  fill: var(--primary-color);
+  opacity: 1;
+}
+
+/* Header Icons (Theme Toggle) */
+header .icon-btn svg {
+    fill: var(--primary-color); /* Keep primary color */
+    opacity: 0.8; /* Slightly less opaque */
+}
+header .icon-btn:hover svg {
+    opacity: 1;
+}
+header .icon-btn:hover {
+    background-color: var(--accent-color-transparent); /* Use transparent accent */
+}
+/* Keep hover consistent */
+/* body.dark-mode header .icon-btn:hover {
+    background-color: var(--accent-color-transparent);
+} */
+
+.template-controls, .import-export {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+  align-items: center;
+}
+
+#template-name, #template-list, input[type="text"], select {
+  flex-grow: 1;
+  padding: 10px 12px; /* Adjust padding */
+  font-size: 0.9em;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-medium);
+  background-color: var(--input-background);
+  color: var(--text-color);
+  min-width: 120px;
+  transition: border-color var(--transition-duration) ease, box-shadow var(--transition-duration) ease, background-color var(--transition-duration) ease;
+}
+#template-name:focus, #template-list:focus, input[type="text"]:focus, select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--accent-color-transparent);
+  background-color: var(--background-color); /* Match body bg on focus */
+}
+body.dark-mode #template-name:focus, body.dark-mode #template-list:focus, body.dark-mode input[type="text"]:focus, body.dark-mode select:focus {
+  background-color: #161A26; /* Darker focus background */
+}
+
+#import-file {
+  display: none;
+}
+
+/* --- Timer Tab Styles --- */
+#timerContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px; 
+    padding: 10px 0; 
+}
+
+.session-name {
+  text-align: center;
+  color: var(--secondary-color);
+  font-size: 1.1em; 
+  font-weight: 500;
+  margin-bottom: 0; 
+  min-height: 1.5em; 
+}
+
+.circular-timer {
+  position: relative;
+  width: 150px; /* Match SVG size */
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px; /* Space below timer */
+}
+
+.circular-timer svg {
+  transform: rotate(-90deg);
+  width: 150px; 
+  height: 150px;
+  overflow: visible; 
+}
+
+.progress-ring__background,
+.progress-ring__progress {
+  fill: none;
+  stroke-linecap: round; 
+}
+
+.progress-ring__background {
+  stroke: var(--border-color); /* Use theme border color for track */
+  stroke-width: 10; /* Slightly thinner */
+}
+
+.progress-ring__progress {
+  stroke: var(--primary-color); /* Use primary color for light mode */
+  stroke-width: 10;
+  stroke-dasharray: 439.82;
+  stroke-dashoffset: 439.82;
+  transition: stroke-dashoffset 0.35s linear;
+}
+/* Define SVG gradient for timer */
+.circular-timer svg defs { display: block; } /* Ensure defs are rendered */
+#timerGradient stop:nth-child(1) { stop-color: var(--accent-color); }
+#timerGradient stop:nth-child(2) { stop-color: var(--primary-color); }
+
+.timer-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.9em; /* Slightly smaller */
+  text-align: center;
+  color: var(--text-color);
+  font-weight: 500; /* Less bold */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px; /* Add spacing */
+}
+
+#timerContainer .button-group {
+    justify-content: center;
+    width: 100%; 
+}
+
+/* Timer buttons use standard button styles now */
+/* #timerContainer .icon-btn {
+    background: linear-gradient(to bottom right, var(--primary-color), var(--secondary-color));
+    color: var(--button-text-color);
+    padding: 9px 16px;
+    border-radius: var(--border-radius-medium);
+    font-weight: 600;
+    border: none;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}
+#timerContainer .icon-btn:hover {
+    background: linear-gradient(to bottom right, var(--secondary-color), var(--primary-color));
+    box-shadow: 0 6px 12px var(--shadow-medium);
+    transform: translateY(-2px);
+} */
+/* Use standard primary/secondary button classes */
+/* Remove specific timer button hover */
+
+/* --- Sessions Tab Styles --- */
+.sessions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px; /* Adjust as needed, was 20px for h2 alone */
+    /* border-bottom: 1px solid var(--glass-border); /* Optional: if you want a line under this header too */
+    /* padding-bottom: 5px; */ /* Optional: if you want padding for the border */
+}
+
+.sessions-header h2 {
+    margin-bottom: 0; /* Remove bottom margin from h2 as .sessions-header handles it */
+    border-bottom: none; /* Remove individual border from h2 if .sessions-header has one */
+    padding-bottom: 0; /* Remove individual padding from h2 */
+}
+
+/* Make the clear all button a bit smaller if needed, or adjust padding */
+.sessions-header #clear-sessions-btn {
+    padding: 6px 12px; /* Example: smaller padding */
+    font-size: 0.85em; /* Example: smaller font */
+    /* Add any other specific styling for this button in this context */
+}
+
+
+#sessions-list {
+    margin-top: 10px;
+    max-height: 250px; /* Adjust height */
+    overflow-y: auto;
+    padding-right: 5px; /* Less padding for scrollbar */
+    margin-right: -5px; /* Offset scrollbar */
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* More gap */
+}
+
+.session {
+  /* Session Card Glassmorphism */
+  background: rgba(var(--input-background-rgb, 248, 249, 250), 0.7); /* Use RGBA */
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius-large); /* More rounded */
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease, background var(--transition-duration) ease;
+  box-shadow: 0 2px 5px var(--shadow-light);
+}
+:root { --input-background-rgb: 248, 249, 250; }
+body.dark-mode { --input-background-rgb: 28, 33, 48; }
+
+body.dark-mode .session {
+    background: rgba(var(--input-background-rgb, 28, 33, 48), 0.75); /* Darker glass for session */
+}
+
+.session:hover {
+  transform: translateY(-3px) scale(1.01); /* Lift and slightly scale */
+  box-shadow: 0 6px 12px var(--shadow-medium);
+  background: rgba(var(--input-background-rgb, 248, 249, 250), 0.9); /* Less transparent on hover */
+}
+body.dark-mode .session:hover {
+    background: rgba(var(--input-background-rgb, 28, 33, 48), 0.9);
+}
+
+.session-info {
+  font-size: 0.95em;
+  flex-grow: 1;
+  margin-right: 10px;
+  display: flex; 
+  flex-direction: column; 
+}
+.session-name-display {
+    font-weight: 600; 
+    color: var(--text-color);
+    margin-bottom: 2px; 
+}
+.session-time-display {
+    color: var(--secondary-color);
+    font-size: 0.85em;
+}
+body.dark-mode .session-time-display {
+    color: var(--accent-color);
+}
+
+.session-actions button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-color);
+    opacity: 0.5; /* More subtle */
+    padding: 6px;
+    margin-left: 5px;
+    border-radius: 50%;
+    transition: all var(--transition-duration) ease; /* Animate all */
+    display: inline-flex; /* Align icon properly */
+    align-items: center;
+    justify-content: center;
+}
+.session-actions button svg { /* Style icons inside buttons */
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+.session-actions button:hover {
+    color: var(--primary-color);
+    background-color: var(--accent-color-transparent);
+    opacity: 1;
+    transform: scale(1.1); /* Scale icon button on hover */
+}
+/* Keep dark mode hover consistent */
+/* body.dark-mode .session-actions button:hover {
+    background-color: var(--accent-color-transparent);
+} */
+
+/* --- Continuous Timing Toggle --- */
+.continuous-timing-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Align to the left */
+    gap: 8px;
+    margin-top: 15px; /* Space above the toggle */
+    margin-bottom: 15px; /* Space below the toggle */
+    padding: 8px 10px; /* Add some padding */
+    background-color: rgba(var(--input-background-rgb, 248, 249, 250), 0.5); /* Subtle background */
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-medium);
+}
+body.dark-mode .continuous-timing-toggle {
+    background-color: rgba(var(--input-background-rgb, 28, 33, 48), 0.5);
+}
+
+.continuous-timing-toggle label {
+    font-size: 0.95em;
+    font-weight: 500;
+    color: var(--text-color);
+    cursor: pointer;
+}
+
+.continuous-timing-toggle input[type="checkbox"] {
+    cursor: pointer;
+    /* Basic styling, can be enhanced */
+    appearance: none;
+    -webkit-appearance: none;
+    width: 40px; /* Width of the toggle */
+    height: 20px; /* Height of the toggle */
+    background-color: var(--border-color);
+    border-radius: 10px; /* Half of height */
+    position: relative;
+    transition: background-color var(--transition-duration) ease;
+}
+
+.continuous-timing-toggle input[type="checkbox"]::before {
+    content: '';
+    position: absolute;
+    width: 16px; /* Size of the knob */
+    height: 16px;
+    border-radius: 50%;
+    background-color: var(--background-color);
+    top: 2px; /* Center vertically */
+    left: 2px; /* Start position */
+    transition: left var(--transition-duration) ease, background-color var(--transition-duration) ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.continuous-timing-toggle input[type="checkbox"]:checked {
+    background-color: var(--primary-color);
+}
+
+.continuous-timing-toggle input[type="checkbox"]:checked::before {
+    left: 22px; /* End position (width - knob_width - left_offset) */
+    background-color: var(--button-text-color); /* Optional: change knob color when active */
+}
+
+
+/* --- Footer & Modals --- */
+footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center; 
+  gap: 10px;
+  padding-top: 15px;
+  border-top: 1px solid var(--glass-border); /* Use glass border */
+  margin-top: auto; /* Pushes footer down */
+}
+
+/* Persistent Timer Display in Footer */
+#persistent-timer-display {
+    font-size: 0.9em;
+    color: var(--text-color);
+    margin-right: auto; /* Push to the left */
+    font-variant-numeric: tabular-nums;
+    padding: 8px 0; /* Align with icon button padding */
+    opacity: 0.8;
+}
+body.dark-mode #persistent-timer-display {
+    color: var(--text-color);
+}
+
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  /* Semi-transparent backdrop */
+  background-color: rgba(10, 10, 20, 0.5); /* Darker backdrop */
+  -webkit-backdrop-filter: blur(5px); /* Stronger blur */
+  backdrop-filter: blur(5px);
+}
+
+.modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInModal 0.3s ease-out;
+}
+@keyframes fadeInModal {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-content {
+  /* Modal Glassmorphism */
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  padding: 25px 30px;
+  border-radius: var(--border-radius-large);
+  width: 90%;
+  max-width: 380px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); /* Stronger shadow for modal */
+  color: var(--text-color);
+  position: relative;
+  transition: background var(--transition-duration) ease, border var(--transition-duration) ease;
+}
+
+/* Settings modal layout */
+.setting-group {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.setting-group.import-export {
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 8px;
+}
+body.dark-mode .modal-content {
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+.close {
+  position: absolute; 
+  top: 10px;
+  right: 15px;
+  color: var(--text-color);
+  opacity: 0.7;
+  font-size: 1.6em; 
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 1;
+  transition: color var(--transition-duration) ease, opacity var(--transition-duration) ease;
+}
+
+.close:hover {
+  color: var(--primary-color);
+  opacity: 1;
+}
+
+/* --- Notification --- */
+#notification {
+  position: fixed;
+  bottom: -100px; /* Start off-screen */
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(to right, var(--primary-color), var(--secondary-color)); /* Gradient */
+  color: var(--button-text-color);
+  padding: 10px 20px;
+  border-radius: var(--border-radius-medium);
+  box-shadow: 0 4px 12px var(--shadow-medium);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease, bottom 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Bounce effect */
+  pointer-events: none;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+#notification.show {
+    opacity: 1;
+    bottom: 25px; /* Slide in position */
+    pointer-events: auto;
+}
+
+/* --- Dark Mode Specific Adjustments --- */
+body.dark-mode #start-timer-btn,
+body.dark-mode #stop-timer-btn,
+body.dark-mode #reset-timer-btn,
+body.dark-mode #export-md-btn {
+    color: var(--button-text-color);
+}
+
+/* --- Dark Mode Specific Overrides --- */
+body.dark-mode .tab-button {
+  background-color: transparent; /* Override light mode background */
+}
+body.dark-mode .tab-button:hover {
+  background-color: rgba(var(--primary-color-rgb, 54, 194, 255), 0.05); /* Dark mode hover */
+}
+body.dark-mode .tab-button.active {
+  background-color: var(--input-background); /* Dark mode active background */
+  color: var(--primary-color); /* Ensure text color is correct */
+}
+
+body.dark-mode .progress-ring__progress {
+  stroke: var(--primary-color); 
+}
+
+body.dark-mode .session {
+    background: var(--input-background); 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+body.dark-mode .session:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+
+/* Custom scrollbar - Futuristic */
+::-webkit-scrollbar {
+  width: 6px; /* Thinner scrollbar */
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent; /* Fully transparent track */
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(var(--primary-color-rgb, 0, 164, 228), 0.3); /* Transparent primary */
+  border-radius: 3px;
+  transition: background-color var(--transition-duration) ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(var(--primary-color-rgb, 0, 164, 228), 0.6); /* More opaque on hover */
+}
+body.dark-mode ::-webkit-scrollbar-thumb {
+  background-color: rgba(var(--primary-color-rgb, 54, 194, 255), 0.3);
+}
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(var(--primary-color-rgb, 54, 194, 255), 0.6);
+}
+
+/* Add SVG definitions needed for timer gradient */
+svg defs {
+    display: block; /* Ensure defs are rendered if hidden by default */
+}
+
+/* --- Template Management Toggle --- */
+#manage-templates-group {
+    overflow: hidden; /* Important for smooth slide */
+    /* display: none; set by JS initially */
+    margin-top: 15px; /* Space above the group */
+    padding: 10px;
+    background-color: rgba(var(--input-background-rgb, 248, 249, 250), 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-medium);
+}
+body.dark-mode #manage-templates-group {
+    background-color: rgba(var(--input-background-rgb, 28, 33, 48), 0.5);
+}
+
+.template-management-buttons {
+    margin-bottom: 10px; /* Space between button groups if they stack */
+}
+.template-management-buttons:last-child {
+    margin-bottom: 0;
+}
+
+
+@keyframes fadeInSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-15px);
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 200px; /* Adjust as needed, should be > actual content height */
+    }
+}
+
+@keyframes fadeOutSlideUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 200px; /* Adjust as needed */
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-15px);
+        max-height: 0;
+    }
+}
+
+#manage-templates-group.fade-in-slide-down {
+    animation: fadeInSlideDown 0.35s ease-out forwards;
+    display: block !important; /* Override inline style during animation */
+}
+
+#manage-templates-group.fade-out-slide-up {
+    animation: fadeOutSlideUp 0.35s ease-in forwards;
+    display: block !important; /* Override inline style during animation */
+}
+
+/* Style for the toggle button when active */
+#manage-templates-toggle.active {
+    background-color: var(--accent-color-transparent);
+    font-weight: bold; /* Or other visual indication */
+}
+
+/* Custom Prompt Dialog Styles */
+#customPromptOverlay { /* Changed selector from . to # */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+    display: none; /* Initially hidden - JS will set to flex */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's above other content */
+}
+
+#customPromptDialog { /* Changed selector from . to # */
+    background-color: var(--background-color); /* Use theme background */
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    min-width: 300px; /* Minimum width */
+    max-width: 90%; /* Maximum width */
+    text-align: center;
+}
+
+#customPromptDialog p { /* Changed selector */
+    margin-bottom: 15px;
+    color: var(--text-color); /* Use theme text color */
+    font-size: 1em;
+}
+
+#customPromptDialog input[type="text"] { /* Changed selector */
+    width: calc(100% - 20px); /* Full width minus padding */
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color); /* Use theme border color */
+    border-radius: 4px;
+    font-size: 0.9em;
+    background-color: var(--input-background);
+    color: var(--text-color);
+}
+
+#customPromptDialog .button-group { /* Changed selector */
+    display: flex;
+    justify-content: space-around; /* Space out buttons */
+    gap: 10px; /* Add gap between buttons */
+}
+
+/* Inherit button styles */
+#customPromptDialog .primary-btn, /* Changed selector */
+#customPromptDialog .secondary-btn { /* Changed selector */
+    padding: 8px 15px; /* Slightly smaller padding */
+    flex-grow: 1; /* Allow buttons to grow */
+}
