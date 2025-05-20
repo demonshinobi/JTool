@@ -328,11 +328,11 @@ function toggleHunterMode() {
     elements.hunterButton.classList.toggle('active'); // Basic visual toggle
     browserAPI.tabs.query({ active: true, currentWindow: true }, function(tabs) {
         if (tabs[0] && isValidTab(tabs[0])) {
-            browserAPI.tabs.sendMessage(tabs[0].id, { type: 'toggleHunterMode' }, (response) => {
+            sendMessageToAllFrames(tabs[0].id, { type: 'toggleHunterMode' }, (response) => {
                 handleApiResponse(response, 'Hunter Mode toggle');
-                // if (response && response.success) window.close(); // Close popup on success
-                // else elements.hunterButton.classList.remove('active'); // Revert visual state on error
             });
+            // Optionally close popup on success
+            // if (response && response.success) window.close();
         } else {
             showNotification('Cannot toggle Hunter mode on this page.');
             elements.hunterButton.classList.remove('active');
@@ -916,6 +916,33 @@ function injectContentScriptsWithRetry(tabId, callback, retries) {
             }
         }
     });
+}
+
+// Send a message to all frames within a tab
+function sendMessageToAllFrames(tabId, message, callback) {
+    if (browserAPI.webNavigation && browserAPI.webNavigation.getAllFrames) {
+        browserAPI.webNavigation.getAllFrames({ tabId: tabId }, (frames) => {
+            if (browserAPI.runtime.lastError) {
+                console.error('Error fetching frames:', browserAPI.runtime.lastError);
+                browserAPI.tabs.sendMessage(tabId, message, callback);
+                return;
+            }
+            if (!Array.isArray(frames) || frames.length === 0) {
+                browserAPI.tabs.sendMessage(tabId, message, callback);
+                return;
+            }
+            frames.forEach((frame) => {
+                const opts = { frameId: frame.frameId };
+                if (frame.frameId === 0) {
+                    browserAPI.tabs.sendMessage(tabId, message, opts, callback);
+                } else {
+                    browserAPI.tabs.sendMessage(tabId, message, opts);
+                }
+            });
+        });
+    } else {
+        browserAPI.tabs.sendMessage(tabId, message, callback);
+    }
 }
 
 function handleApiResponse(response, actionDescription = 'Action') {
