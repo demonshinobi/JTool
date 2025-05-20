@@ -10,7 +10,7 @@
     "watch": "webpack --config webpack.config.js --watch",
     "dev": "webpack --config webpack.config.js --mode=development",
     "start": "npm run build && npm run watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test"
   },
   "keywords": ["browser extension", "formatting", "html", "templates", "timer"],
   "author": "Your Name or Company",
