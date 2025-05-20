@@ -50,7 +50,7 @@ module.exports = {
         { from: 'src/icons', to: 'icons' },
         { from: 'src/browser-polyfill.js', to: 'browser-polyfill.js' },
         { from: 'src/popup/bg-animation.js', to: 'bg-animation.js' }, // Added this line
-        // We copy manifest.json manually now, so remove it from here <-- This comment is wrong, webpack needs to copy it
+        // Manifest must be included here for packaging
         { from: 'manifest.json', to: 'manifest.json' }, // Uncommented this line
       ],
     }),
