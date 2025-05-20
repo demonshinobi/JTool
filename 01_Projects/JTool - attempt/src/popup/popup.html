@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JTool</title>
+    <!-- Link to the bundled CSS file -->
+    <link rel="stylesheet" href="popup.bundle.css">
+    <!-- Include Google Fonts if needed -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Optional: Animated background canvas from Timer -->
+    <canvas id="bgCanvas"></canvas>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <img src="icons/jlogo.png" alt="Logo" id="logo"> <!-- Using KaseyaLogo from jformat -->
+            <!-- Theme Toggle Button from JFormat -->
+            <button id="theme-toggle" class="icon-btn" title="Toggle Dark Mode">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                    <path d="M12 18c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6zm0-10c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm0-6C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.52 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8z"/>
+                </svg>
+            </button>
+        </header>
+
+        <!-- Tab Navigation -->
+        <nav class="tab-nav">
+            <button class="tab-button active" data-tab="formatter">Formatter</button>
+            <button class="tab-button" data-tab="timer">Timer</button>
+            <button class="tab-button" data-tab="sessions">Sessions</button>
+            <!-- <button class="tab-button" data-tab="settings">Settings</button> -->
+        </nav>
+
+        <!-- Tab Content -->
+        <main>
+            <!-- Formatter Tab -->
+            <div id="formatter-tab" class="tab-content active">
+                <textarea id="html-input" placeholder="Enter or edit your HTML here..."></textarea>
+                <div id="preview-container"></div>
+                <div class="button-group">
+                    <button id="apply-button" class="primary-btn">Apply</button>
+                    <button id="undo-button" class="secondary-btn">Undo</button>
+                    <button id="hunter-button" class="secondary-btn">Hunter Mode</button>
+                </div>
+                <div class="template-controls">
+                    <input type="text" id="template-name" placeholder="Template Name">
+                    <button id="save-button" class="primary-btn">Save Template</button>
+                    <select id="template-list" aria-label="Saved Templates"></select>
+                    <button id="manage-templates-toggle" class="secondary-btn">Manage Templates</button>
+                </div>
+                <div id="manage-templates-group" style="display: none;">
+                    <div class="button-group template-management-buttons"> <!-- Added a class for easier styling if needed -->
+                        <button id="load-button" class="secondary-btn">Load Template</button>
+                        <button id="delete-button" class="secondary-btn">Delete Template</button>
+                    </div>
+                    <div class="import-export template-management-buttons"> <!-- Added a class for easier styling if needed -->
+                        <button id="export-templates" class="secondary-btn">Export Templates</button>
+                        <button id="import-templates" class="secondary-btn">Import Templates</button>
+                        <input type="file" id="import-file" accept=".json" style="display: none;"> <!-- Hidden file input -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timer Tab -->
+            <div id="timer-tab" class="tab-content">
+                <div id="timerContainer">
+                    <div class="session-name" id="sessionNameDisplay"></div>
+                    <div class="circular-timer">
+                        <svg class="progress-ring" width="150" height="150"> <!-- Slightly smaller -->
+                            <defs>
+                                <linearGradient id="timerGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color:var(--accent-color);stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:var(--primary-color);stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <circle class="progress-ring__background" stroke="#ddd" stroke-width="10" fill="transparent" r="70" cx="75" cy="75"></circle>
+                            <circle class="progress-ring__progress" stroke="var(--baby-blue)" stroke-width="10" fill="transparent" r="70" cx="75" cy="75" stroke-dasharray="439.82" stroke-dashoffset="439.82"></circle> <!-- Adjusted dasharray -->
+                        </svg>
+                        <div class="timer-text" id="timerDisplay">00:00:00</div>
+                    </div>
+                    <div class="button-group">
+                        <button id="start-timer-btn" class="primary-btn">Start</button>
+                        <button id="stop-timer-btn" class="secondary-btn">Stop</button>
+                        <button id="reset-timer-btn" class="secondary-btn">Reset</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sessions Tab -->
+            <div id="sessions-tab" class="tab-content">
+                <div class="sessions-header">
+                    <h2>Logged Sessions</h2>
+                    <button id="clear-sessions-btn" class="secondary-btn">Clear All</button> <!-- Moved and text changed -->
+                </div>
+                <div id="sessions-list">
+                    <!-- Session list will be populated here by JS -->
+                </div>
+                <div class="continuous-timing-toggle">
+                    <label for="continuousTimingToggle">Continuous Timing:</label>
+                    <input type="checkbox" id="continuousTimingToggle">
+                </div>
+                <div class="button-group"> <!-- This group now only contains Export MD -->
+                    <button id="export-md-btn" class="secondary-btn">Export MD</button>
+                 </div>
+            </div>
+
+            <!-- Settings Tab (Placeholder) -->
+            <!--
+            <div id="settings-tab" class="tab-content">
+                <h2>Settings</h2>
+                <p>Combined settings will go here.</p>
+                 Add settings elements from both extensions if needed
+            </div>
+            -->
+
+        </main>
+
+        <!-- Notification Area (from Timer) -->
+        <div id="notification" style="opacity: 0;"></div>
+
+        <!-- Modals (from JFormat - keep for now, might integrate differently later) -->
+        <div id="settings-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" data-modal="settings-modal">&times;</span>
+                <h2>Settings</h2>
+                <p>Settings will be available in a future update.</p>
+            </div>
+        </div>
+        <div id="help-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" data-modal="help-modal">&times;</span>
+                <h2>Help</h2>
+                <p>JTool combines HTML formatting and a timer.</p>
+                <p>Made by Josh Cancel.</p>
+            </div>
+        </div>
+        <footer>
+             <!-- Persistent Timer Display -->
+             <span id="persistent-timer-display">00:00:00</span>
+
+             <button id="settings-button" class="icon-btn" title="Settings">
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+             </button>
+             <button id="help-button" class="icon-btn" title="Help">
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+             </button>
+         </footer>
+<!-- Custom Prompt Dialog (Hidden by default) -->
+        <div id="customPromptOverlay" class="modal-overlay" style="display: none;">
+            <div id="customPromptDialog" class="modal-content custom-prompt">
+                <p id="customPromptMessage">Prompt message goes here.</p>
+                <input type="text" id="customPromptInput">
+                <div class="button-group">
+                    <button id="customPromptOk" class="primary-btn">OK</button>
+                    <button id="customPromptCancel" class="secondary-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Custom Confirm Dialog (Hidden by default) -->
+        <div id="customConfirmOverlay" class="modal-overlay" style="display: none;">
+            <div id="customConfirmDialog" class="modal-content custom-prompt"> <!-- Can reuse 'custom-prompt' class for basic styling -->
+                <p id="customConfirmMessage">Confirmation message goes here.</p>
+                <div class="button-group">
+                    <button id="customConfirmOk" class="primary-btn">OK</button>
+                    <button id="customConfirmCancel" class="secondary-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Link to merged JS and animation script -->
+    <script src="popup.bundle.js"></script> <!-- Assuming webpack bundles everything into popup.bundle.js -->
+    <script src="bg-animation.js"></script> <!-- Copy this file over -->
+</body>
+</html>
