@@ -280,9 +280,12 @@ function toggleHunterMode() {
     browserAPI.tabs.query({ active: true, currentWindow: true }, function(tabs) {
         if (tabs[0] && isValidTab(tabs[0])) {
             browserAPI.tabs.sendMessage(tabs[0].id, { type: 'toggleHunterMode' }, (response) => {
-                handleApiResponse(response, 'Hunter Mode toggle');
-                // if (response && response.success) window.close(); // Close popup on success
-                // else elements.hunterButton.classList.remove('active'); // Revert visual state on error
+                const success = handleApiResponse(response, 'Hunter Mode toggle');
+                if (success) {
+                    window.close(); // Close popup so page receives focus
+                } else {
+                    elements.hunterButton.classList.remove('active'); // Revert visual state on error
+                }
             });
         } else {
             showNotification('Cannot toggle Hunter mode on this page.');

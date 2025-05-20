@@ -143,6 +143,10 @@ function addEventListeners() {
     // Use click in capture phase to potentially intercept before other listeners
     document.addEventListener('click', handleClick, true);
     console.log('HunterMode: click listener ADDED');
+    // Allow ESC key to exit Hunter mode
+    document.addEventListener('keydown', handleKeydown, true);
+    window.addEventListener('keydown', handleKeydown, true);
+    console.log('HunterMode: keydown listener ADDED');
     // Apply button listener (needs edit panel to exist first)
     if (editPanel) {
         const applyChangesButton = editPanel.querySelector('#applyChanges'); // Query within panel
@@ -163,6 +167,9 @@ function removeEventListeners() {
     console.log('HunterMode: mouseout listener REMOVED');
     document.removeEventListener('click', handleClick, true);
     console.log('HunterMode: click listener REMOVED');
+    document.removeEventListener('keydown', handleKeydown, true);
+    window.removeEventListener('keydown', handleKeydown, true);
+    console.log('HunterMode: keydown listener REMOVED');
     // Remove apply button listener
     if (editPanel) {
         const applyChangesButton = editPanel.querySelector('#applyChanges');
@@ -193,15 +200,10 @@ function handleMouseOver(event) { // Changed e to event for clarity
     // Store new hover target's original styles and apply hover highlight
     currentlyHoveredElement = target;
     currentHoverOriginalOutline = target.style.outline || ''; // Store original outline (if needed elsewhere, though not directly used for hover effect here)
-    currentHoverOriginalOpacity = target.style.opacity || ''; // Store original opacity
+    currentHoverOriginalOpacity = target.style.opacity || ''; // Store original opacity (in case needed)
     console.log('[hunterMode.js] handleMouseOver: Stored original opacity:', currentHoverOriginalOpacity); // Log stored original opacity
-    event.target.style.setProperty('opacity', '0.5', 'important'); // Change hover effect to opacity
-    console.log('[hunterMode.js] handleMouseOver: Opacity set to 0.5 !important. Inline value:', event.target.style.opacity); // Log inline opacity
-    try {
-        console.log('[hunterMode.js] handleMouseOver: Computed opacity:', window.getComputedStyle(event.target).opacity); // Log computed opacity
-    } catch (error) {
-        console.error('[hunterMode.js] handleMouseOver: Error getting computed opacity:', error);
-    }
+    event.target.style.setProperty('outline', '2px solid red', 'important');
+    console.log('[hunterMode.js] handleMouseOver: Outline set to 2px solid red');
 }
 
 function handleMouseOut(event) { // Changed e to event for consistency
@@ -214,8 +216,9 @@ function handleMouseOut(event) { // Changed e to event for consistency
         return;
     }
 
-    // Restore original opacity only for the element we were actually hovering
-    event.target.style.setProperty('opacity', currentHoverOriginalOpacity, ''); // Restore original opacity
+    // Restore original outline and opacity only for the element we were actually hovering
+    event.target.style.setProperty('outline', currentHoverOriginalOutline, '');
+    event.target.style.setProperty('opacity', currentHoverOriginalOpacity, '');
 
     // Clear hover state
     currentlyHoveredElement = null;
@@ -247,9 +250,9 @@ function handleClick(e) {
         selectedElementOriginalOpacity = target.style.opacity || ''; // Store original opacity
         console.log('[hunterMode.js] handleClick: Stored original opacity:', selectedElementOriginalOpacity); // Log stored original opacity
 
-        // 2. Apply persistent highlight (solid blue outline and reduced opacity)
-        selectedElement.style.setProperty('outline', '3px solid blue', 'important'); // Ensure outline is important too
-        selectedElement.style.setProperty('opacity', '0.3', 'important'); // Set reduced opacity for selection
+        // 2. Apply persistent highlight (solid red outline and reduced opacity)
+        selectedElement.style.setProperty('outline', '3px solid red', 'important');
+        selectedElement.style.setProperty('opacity', '0.3', 'important'); // Slightly dim for visibility
         console.log('[hunterMode.js] handleClick: Selected element opacity set to 0.3 !important. Inline value:', selectedElement.style.opacity); // Log inline opacity
         try {
             console.log('[hunterMode.js] handleClick: Selected element computed opacity:', window.getComputedStyle(selectedElement).opacity); // Log computed opacity
@@ -280,6 +283,12 @@ function handleClick(e) {
     } else {
         // Log if the click was ignored (e.g., on the overlay or edit panel)
         console.log('Click ignored on non-target element or outside valid area.');
+    }
+}
+
+function handleKeydown(event) {
+    if (event.key === 'Escape') {
+        deactivateHunterModeInternal();
     }
 }
 
@@ -315,7 +324,7 @@ function applyChanges() {
                     // Update reference to the new element
                     selectedElement = newElement;
                     // Re-apply persistent highlight to the new element
-                    selectedElement.style.outline = '3px solid blue';
+                    selectedElement.style.outline = '3px solid red';
                     editPanel.style.display = 'none'; // Hide panel
 
                     // Decide what happens next: deactivate or allow new selection?
