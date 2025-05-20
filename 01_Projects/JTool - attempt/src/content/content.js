@@ -57,27 +57,44 @@ function applyFormatting(htmlCode) {
             }
 
             // Replace the selected content with the formatted content
+            const firstNode = fragment.firstChild; // store first node before insertion
+            const lastNode = fragment.lastChild;  // store last node for range selection
             range.deleteContents();
-            const newNode = range.insertNode(fragment);
-            console.log('New node inserted:', newNode);
+            range.insertNode(fragment);
+            console.log('Content fragment inserted.');
+
+            // Determine the range to select all newly inserted nodes
+            let newNodeRange = document.createRange();
+            if (firstNode && lastNode) {
+                newNodeRange.setStartBefore(firstNode);
+                newNodeRange.setEndAfter(lastNode);
+            } else if (firstNode) {
+                newNodeRange.selectNode(firstNode);
+            } else {
+                // Nothing was inserted; this should not happen but handle gracefully
+                newNodeRange = null;
+            }
 
             // Attempt to adjust the selection to encompass the newly inserted content
             try {
-                const newRange = document.createRange();
-                newRange.selectNodeContents(newNode);
-                selection.removeAllRanges();
-                selection.addRange(newRange);
-                console.log('New range set successfully');
+                if (newNodeRange) {
+                    selection.removeAllRanges();
+                    selection.addRange(newNodeRange);
+                    console.log('New range set successfully');
+                } else {
+                    console.warn('No nodes were inserted to select.');
+                }
             } catch (rangeError) {
                 console.warn('Error setting range, falling back to default selection:', rangeError);
-                // Fallback: select the entire formatted content
+                // Fallback: select the entire formatted content if possible
                 try {
-                    const parentNode = newNode.parentNode;
-                    const newRange = document.createRange();
-                    newRange.selectNode(parentNode);
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
-                    console.log('Fallback range set successfully');
+                    if (firstNode) {
+                        const fallbackRange = document.createRange();
+                        fallbackRange.selectNode(firstNode);
+                        selection.removeAllRanges();
+                        selection.addRange(fallbackRange);
+                        console.log('Fallback range set successfully');
+                    }
                 } catch (fallbackError) {
                     console.error('Error setting fallback range:', fallbackError);
                 }
