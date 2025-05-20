@@ -58,13 +58,14 @@ function applyFormatting(htmlCode) {
 
             // Replace the selected content with the formatted content
             range.deleteContents();
-            const newNode = range.insertNode(fragment);
-            console.log('New node inserted:', newNode);
+            const firstNode = fragment.firstChild; // capture the node before insertion
+            range.insertNode(fragment);
+            console.log('New node inserted:', firstNode);
 
             // Attempt to adjust the selection to encompass the newly inserted content
             try {
                 const newRange = document.createRange();
-                newRange.selectNodeContents(newNode);
+                newRange.selectNodeContents(firstNode);
                 selection.removeAllRanges();
                 selection.addRange(newRange);
                 console.log('New range set successfully');
@@ -72,7 +73,7 @@ function applyFormatting(htmlCode) {
                 console.warn('Error setting range, falling back to default selection:', rangeError);
                 // Fallback: select the entire formatted content
                 try {
-                    const parentNode = newNode.parentNode;
+                    const parentNode = firstNode.parentNode;
                     const newRange = document.createRange();
                     newRange.selectNode(parentNode);
                     selection.removeAllRanges();
