@@ -14,6 +14,7 @@ const browserAPI = chrome || browser;
 let timerUpdateInterval = null; // Interval for updating timer display
 let continuousTimingSetting = false; // Timer setting
 let currentSessionName = ""; // Timer setting
+let settings = {};
 
 // --- DOM Elements Cache ---
 const elements = {};
@@ -26,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeFormatter();
     initializeTimer();
     initializeSessions();
-    loadThemeSettings(); // Load theme preference
+    loadSettings();
     // Ensure content scripts are ready for formatter actions if formatter tab is initially active
     if (document.getElementById('formatter-tab').classList.contains('active')) {
         ensureContentScriptsInjected(() => captureSelectedText());
@@ -83,6 +84,18 @@ function cacheDOMElements() {
     elements.helpModal = document.getElementById('help-modal');
     elements.modalCloseButtons = document.querySelectorAll('.modal .close');
     elements.persistentTimerDisplay = document.getElementById('persistent-timer-display'); // Added
+
+    // Settings Modal Elements
+    elements.settingsThemeSelect = document.getElementById('settings-theme-select');
+    elements.settingsContinuousTiming = document.getElementById('settings-continuous-timing');
+    elements.settingsDefaultSession = document.getElementById('settings-default-session');
+    elements.settingsShowPersistent = document.getElementById('settings-show-persistent');
+    elements.settingsDefaultTemplate = document.getElementById('settings-default-template');
+    elements.settingsHunterAuto = document.getElementById('settings-hunter-auto');
+    elements.settingsShowAnimation = document.getElementById('settings-show-animation');
+    elements.exportSettingsButton = document.getElementById('export-settings-btn');
+    elements.importSettingsButton = document.getElementById('import-settings-btn');
+    elements.importSettingsFile = document.getElementById('import-settings-file');
 
     // Custom Prompt Elements
     elements.customPromptOverlay = document.getElementById('customPromptOverlay');
@@ -159,6 +172,42 @@ function setupFormatterEventListeners() {
     // Keep modal listeners from JFormat
     elements.settingsButton?.addEventListener('click', () => toggleModal(elements.settingsModal));
     elements.helpButton?.addEventListener('click', () => toggleModal(elements.helpModal));
+    elements.settingsThemeSelect?.addEventListener('change', () => {
+        settings.theme = elements.settingsThemeSelect.value;
+        applySettings();
+        saveSettings();
+    });
+    elements.settingsContinuousTiming?.addEventListener('change', () => {
+        settings.continuousTiming = elements.settingsContinuousTiming.checked;
+        applySettings();
+        saveSettings();
+    });
+    elements.settingsDefaultSession?.addEventListener('input', () => {
+        settings.defaultSessionName = elements.settingsDefaultSession.value;
+        saveSettings();
+    });
+    elements.settingsShowPersistent?.addEventListener('change', () => {
+        settings.showPersistentTimer = elements.settingsShowPersistent.checked;
+        applySettings();
+        saveSettings();
+    });
+    elements.settingsDefaultTemplate?.addEventListener('change', () => {
+        settings.defaultTemplate = elements.settingsDefaultTemplate.value;
+        if (elements.templateList) elements.templateList.value = settings.defaultTemplate;
+        saveSettings();
+    });
+    elements.settingsHunterAuto?.addEventListener('change', () => {
+        settings.hunterModeAuto = elements.settingsHunterAuto.checked;
+        saveSettings();
+    });
+    elements.settingsShowAnimation?.addEventListener('change', () => {
+        settings.showAnimation = elements.settingsShowAnimation.checked;
+        applySettings();
+        saveSettings();
+    });
+    elements.exportSettingsButton?.addEventListener('click', exportSettings);
+    elements.importSettingsButton?.addEventListener('click', () => elements.importSettingsFile?.click());
+    elements.importSettingsFile?.addEventListener('change', importSettings);
     elements.modalCloseButtons?.forEach(closeButton => {
         closeButton.addEventListener('click', (event) => {
             const modalId = event.target.getAttribute('data-modal');
@@ -714,24 +763,104 @@ function parseTimeString(timeStr) {
 
 
 // --- Theme Management (Using JFormat's ThemeManager) ---
-function loadThemeSettings() {
-    console.log("Loading theme settings");
-    browserAPI.storage.local.get(['theme'], (result) => {
-        const theme = result.theme || 'light'; // Default to light
-        setTheme(theme); // Apply theme using imported function
-        // Ensure toggle button state matches (optional)
-        // elements.themeToggle.setAttribute('aria-pressed', theme === 'dark');
-    });
-}
-
 function toggleDarkMode() {
     console.log("Toggling dark mode");
     const currentTheme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme); // Apply theme using imported function
-    browserAPI.storage.local.set({ theme: newTheme }, () => {
-        console.log('Theme preference saved:', newTheme);
+    settings.theme = newTheme;
+    saveSettings();
+}
+
+// --- Settings Management ---
+const DEFAULT_SETTINGS = {
+    theme: 'light',
+    continuousTiming: false,
+    defaultSessionName: '',
+    showPersistentTimer: true,
+    defaultTemplate: '',
+    hunterModeAuto: false,
+    showAnimation: true
+};
+
+function loadSettings() {
+    browserAPI.storage.local.get({ settings: DEFAULT_SETTINGS }, (data) => {
+        settings = { ...DEFAULT_SETTINGS, ...(data.settings || {}) };
+        applySettings();
     });
+}
+
+function saveSettings() {
+    browserAPI.storage.local.set({ settings }, () => {
+        console.log('Settings saved', settings);
+    });
+}
+
+function applySettings() {
+    setTheme(settings.theme);
+    if (elements.settingsThemeSelect) elements.settingsThemeSelect.value = settings.theme;
+
+    continuousTimingSetting = settings.continuousTiming;
+    if (elements.continuousTimingToggle) elements.continuousTimingToggle.checked = settings.continuousTiming;
+    if (elements.settingsContinuousTiming) elements.settingsContinuousTiming.checked = settings.continuousTiming;
+
+    currentSessionName = settings.defaultSessionName || '';
+    if (elements.settingsDefaultSession) elements.settingsDefaultSession.value = settings.defaultSessionName;
+    if (elements.sessionNameDisplay) elements.sessionNameDisplay.textContent = currentSessionName;
+
+    if (elements.persistentTimerDisplay) {
+        elements.persistentTimerDisplay.style.display = settings.showPersistentTimer ? 'inline' : 'none';
+    }
+    if (elements.settingsShowPersistent) elements.settingsShowPersistent.checked = settings.showPersistentTimer;
+
+    updateTemplateList(elements.templateList);
+    updateTemplateList(elements.settingsDefaultTemplate);
+    if (elements.templateList) elements.templateList.value = settings.defaultTemplate;
+    if (elements.settingsDefaultTemplate) elements.settingsDefaultTemplate.value = settings.defaultTemplate;
+
+    const canvas = document.getElementById('bgCanvas');
+    if (canvas) {
+        canvas.style.display = settings.showAnimation ? 'block' : 'none';
+    }
+    if (elements.settingsShowAnimation) elements.settingsShowAnimation.checked = settings.showAnimation;
+
+    if (elements.settingsHunterAuto) elements.settingsHunterAuto.checked = settings.hunterModeAuto;
+
+    if (settings.hunterModeAuto && elements.hunterButton && !elements.hunterButton.classList.contains('active')) {
+        ensureContentScriptsInjected(() => toggleHunterMode());
+    }
+}
+
+function exportSettings() {
+    const jsonString = JSON.stringify(settings, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'jtool_settings.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function importSettings(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const imported = JSON.parse(e.target.result);
+            settings = { ...DEFAULT_SETTINGS, ...imported };
+            applySettings();
+            saveSettings();
+        } catch (err) {
+            console.error('Error importing settings', err);
+            alert('Invalid settings file');
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = null;
 }
 
 // Listener moved to cacheDOMElements

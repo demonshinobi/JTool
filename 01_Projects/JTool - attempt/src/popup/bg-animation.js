@@ -1,9 +1,17 @@
 (function () {
-  const canvas = document.getElementById("bgCanvas");
-  if (!canvas) {
-    console.warn("Background canvas element not found.");
-    return;
-  }
+  const browserAPI = chrome || browser;
+  browserAPI.storage.local.get({ settings: { showAnimation: true } }, (data) => {
+    if (!data.settings?.showAnimation) {
+      const canvas = document.getElementById("bgCanvas");
+      if (canvas) canvas.remove();
+      return;
+    }
+
+    const canvas = document.getElementById("bgCanvas");
+    if (!canvas) {
+      console.warn("Background canvas element not found.");
+      return;
+    }
   canvas.style.position = "fixed";
   canvas.style.top = 0;
   canvas.style.left = 0;
@@ -214,5 +222,7 @@
         resizeObserver.disconnect(); // Assuming resizeObserver is defined earlier
     }
   });
+
+  }); // end storage.get callback
 
 })();

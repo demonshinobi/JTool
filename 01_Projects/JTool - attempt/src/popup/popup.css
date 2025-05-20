@@ -736,6 +736,20 @@ body.dark-mode #persistent-timer-display {
   position: relative;
   transition: background var(--transition-duration) ease, border var(--transition-duration) ease;
 }
+
+/* Settings modal layout */
+.setting-group {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.setting-group.import-export {
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 8px;
+}
 body.dark-mode .modal-content {
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 }
